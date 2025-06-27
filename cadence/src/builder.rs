@@ -112,7 +112,7 @@ pub(crate) struct MetricFormatter<'a> {
 }
 
 impl<'a> MetricFormatter<'a> {
-    const TAG_PREFIX: &'static str = "|#";
+    const TAG_PREFIX: &'static str = "";
 
     pub(crate) fn counter(prefix: &'a str, key: &'a str, val: MetricValue) -> Self {
         Self::from_val(prefix, key, val, MetricType::Counter)
@@ -187,7 +187,9 @@ impl<'a> MetricFormatter<'a> {
     }
 
     fn write_base_metric(&self, out: &mut String) {
-        let _ = write!(out, "{}{}:{}|{}", self.prefix, self.key, self.val, self.type_);
+        let _ = write!(out, "{}{}", self.prefix, self.key);
+        self.write_tags(out);
+        let _ = write!(out, ":{}|{}", self.val, self.type_);
     }
 
     fn write_sampling_rate(&self, out: &mut String) {
@@ -199,14 +201,11 @@ impl<'a> MetricFormatter<'a> {
 
     fn write_tags(&self, out: &mut String) {
         if !self.tags.is_empty() {
-            out.push_str(Self::TAG_PREFIX);
-            for (i, &(key, value)) in self.tags.iter().enumerate() {
-                if i > 0 {
-                    out.push(',');
-                }
+            for &(key, value) in self.tags.iter() {
+                out.push(',');
                 if let Some(key) = key {
                     out.push_str(key);
-                    out.push(':');
+                    out.push('=');
                 }
                 out.push_str(value);
             }
@@ -276,7 +275,7 @@ impl<'a> MetricFormatter<'a> {
         let mut metric_string = String::with_capacity(size_hint);
         self.write_base_metric(&mut metric_string);
         self.write_sampling_rate(&mut metric_string);
-        self.write_tags(&mut metric_string);
+        // self.write_tags(&mut metric_string);
         self.write_container_id(&mut metric_string);
         self.write_timestamp(&mut metric_string);
         metric_string
