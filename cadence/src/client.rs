@@ -80,12 +80,8 @@ impl ToTimerValue for Vec<u64> {
 
 impl ToTimerValue for Duration {
     fn try_to_value(self) -> MetricResult<MetricValue> {
-        let as_millis = self.as_millis();
-        if as_millis > u64::MAX as u128 {
-            Err(MetricError::from((ErrorKind::InvalidInput, "u64 overflow")))
-        } else {
-            Ok(MetricValue::Unsigned(as_millis as u64))
-        }
+        let as_millis = self.as_secs_f64() * 1000.0;
+        Ok(MetricValue::Float(as_millis))
     }
 }
 
